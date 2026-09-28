@@ -1,0 +1,639 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <link rel="icon" href="data:," />
+  <title>Free PDF Toolkit</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f3f2ef;
+      --surface: #ffffff;
+      --surface-2: #eceae5;
+      --ink: #171716;
+      --muted: #625f5a;
+      --line: #d8d5cf;
+      --accent: #cf3d28;
+      --accent-deep: #a92c1a;
+      --accent-soft: #f9e5e0;
+      --ok: #237154;
+      --ok-soft: #e1f2ea;
+      --focus: #1967d2;
+      --shadow: 0 18px 50px rgba(37, 31, 28, .09);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #151513;
+        --surface: #222220;
+        --surface-2: #2c2b28;
+        --ink: #f5f2ec;
+        --muted: #bdb8af;
+        --line: #3e3c38;
+        --accent: #ef6049;
+        --accent-deep: #ff7964;
+        --accent-soft: #46251f;
+        --ok: #6fc6a0;
+        --ok-soft: #1c3c31;
+        --focus: #88b8ff;
+        --shadow: 0 18px 55px rgba(0, 0, 0, .28);
+      }
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Helvetica Neue", "Segoe UI", sans-serif;
+      min-height: 100vh;
+    }
+    button, input, select { font: inherit; }
+    button { color: inherit; }
+    button:focus-visible, input:focus-visible, select:focus-visible {
+      outline: 3px solid color-mix(in srgb, var(--focus) 55%, transparent);
+      outline-offset: 2px;
+    }
+    .wrap { width: min(1160px, calc(100% - 40px)); margin: 0 auto; }
+    .intro {
+      padding: 56px 0 30px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 28px;
+      align-items: end;
+      border-bottom: 1px solid var(--line);
+    }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--ok);
+      font-size: .85rem;
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+    .eyebrow .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 5px var(--ok-soft); }
+    h1 {
+      font-family: Georgia, "Times New Roman", serif;
+      font-weight: 500;
+      font-size: clamp(2.45rem, 6vw, 4.9rem);
+      line-height: .98;
+      letter-spacing: -.055em;
+      margin: 0;
+      max-width: 780px;
+    }
+    .intro p { color: var(--muted); max-width: 520px; font-size: 1.05rem; line-height: 1.55; margin: 18px 0 0; }
+    .trust {
+      width: 230px;
+      padding: 18px 18px 16px;
+      border-top: 3px solid var(--ink);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+    .trust strong { display: block; font-size: .95rem; margin-bottom: 5px; }
+    .trust span { color: var(--muted); font-size: .82rem; line-height: 1.45; display: block; }
+    .workspace { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 26px; padding: 30px 0 56px; }
+    .tool-nav { display: flex; flex-direction: column; gap: 7px; align-self: start; position: sticky; top: 20px; }
+    .nav-label { font-size: .75rem; color: var(--muted); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 2px 10px 8px; }
+    .tool-tab {
+      border: 0;
+      background: transparent;
+      padding: 13px 12px;
+      text-align: left;
+      display: grid;
+      grid-template-columns: 32px 1fr;
+      gap: 10px;
+      align-items: center;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background .18s ease, color .18s ease;
+    }
+    .tool-tab:hover { background: var(--surface-2); }
+    .tool-tab.active { background: var(--ink); color: var(--bg); }
+    .tool-tab svg { width: 22px; height: 22px; stroke-width: 1.8; }
+    .tool-tab strong { display: block; font-size: .94rem; }
+    .tool-tab small { display: block; opacity: .68; margin-top: 2px; }
+    .panel {
+      display: none;
+      background: var(--surface);
+      min-height: 520px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--line);
+    }
+    .panel.active { display: block; }
+    .panel-head { padding: 30px 32px 24px; border-bottom: 1px solid var(--line); }
+    .panel-number { font: 700 .77rem/1 monospace; color: var(--accent); margin-bottom: 12px; }
+    h2 { font-family: Georgia, "Times New Roman", serif; font-size: clamp(1.9rem, 4vw, 2.65rem); font-weight: 500; letter-spacing: -.035em; margin: 0 0 8px; }
+    .panel-head p { color: var(--muted); margin: 0; line-height: 1.55; max-width: 660px; }
+    .panel-body { padding: 30px 32px 34px; }
+    .dropzone {
+      border: 1.5px dashed var(--line);
+      background: var(--bg);
+      min-height: 168px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 24px;
+      cursor: pointer;
+      transition: border-color .18s ease, background .18s ease;
+    }
+    .dropzone:hover, .dropzone.dragging { border-color: var(--accent); background: var(--accent-soft); }
+    .drop-icon {
+      width: 52px; height: 58px; margin: 0 auto 14px; border: 2px solid currentColor; border-radius: 4px; position: relative; color: var(--accent);
+    }
+    .drop-icon:before { content: ""; position: absolute; right: -2px; top: -2px; width: 16px; height: 16px; background: var(--bg); border-left: 2px solid currentColor; border-bottom: 2px solid currentColor; }
+    .dropzone:hover .drop-icon:before, .dropzone.dragging .drop-icon:before { background: var(--accent-soft); }
+    .drop-icon:after { content: "+"; position: absolute; inset: 0; display: grid; place-items: center; font-size: 24px; font-weight: 300; }
+    .dropzone strong { display: block; margin-bottom: 6px; }
+    .dropzone span { color: var(--muted); font-size: .88rem; }
+    .file-input { display: none; }
+    .file-list { display: grid; gap: 8px; margin-top: 18px; }
+    .file-row {
+      display: grid;
+      grid-template-columns: 32px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      background: var(--surface-2);
+      border-radius: 8px;
+    }
+    .file-badge { width: 32px; height: 38px; background: var(--accent); color: #fff; display: grid; place-items: center; border-radius: 3px; font-size: .62rem; font-weight: 800; }
+    .file-meta { min-width: 0; }
+    .file-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: .91rem; font-weight: 650; }
+    .file-size { color: var(--muted); font-size: .76rem; margin-top: 3px; }
+    .row-actions { display: flex; gap: 4px; }
+    .icon-btn { border: 0; background: transparent; width: 34px; height: 34px; border-radius: 6px; cursor: pointer; color: var(--muted); display: grid; place-items: center; }
+    .icon-btn:hover { background: var(--surface); color: var(--ink); }
+    .icon-btn svg { width: 17px; height: 17px; }
+    .options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 22px; }
+    .field label { display: block; font-size: .82rem; font-weight: 700; margin-bottom: 7px; }
+    .field input, .field select {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: var(--bg);
+      color: var(--ink);
+      border-radius: 7px;
+      padding: 12px 13px;
+    }
+    .field small { display: block; color: var(--muted); margin-top: 6px; line-height: 1.4; }
+    .action-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 24px; }
+    .primary {
+      border: 0;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 7px;
+      padding: 13px 18px;
+      font-weight: 750;
+      cursor: pointer;
+      min-width: 170px;
+    }
+    .primary:hover { background: var(--accent-deep); }
+    .primary:disabled { opacity: .48; cursor: not-allowed; }
+    .clear-btn { border: 1px solid var(--line); background: transparent; border-radius: 7px; padding: 12px 15px; font-weight: 650; cursor: pointer; }
+    .clear-btn:hover { background: var(--surface-2); }
+    .status { min-height: 24px; font-size: .85rem; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+    .status.error { color: var(--accent); }
+    .status.success { color: var(--ok); }
+    .spinner { width: 15px; height: 15px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .notice { margin-top: 18px; background: var(--accent-soft); padding: 13px 15px; color: var(--ink); font-size: .82rem; line-height: 1.5; border-radius: 7px; }
+    .quality-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 22px; }
+    .quality-option { position: relative; }
+    .quality-option input { position: absolute; opacity: 0; }
+    .quality-option label { display: block; border: 1px solid var(--line); padding: 14px; border-radius: 8px; cursor: pointer; min-height: 84px; background: var(--bg); }
+    .quality-option label strong { display: block; font-size: .9rem; }
+    .quality-option label span { display: block; color: var(--muted); font-size: .78rem; margin-top: 5px; line-height: 1.35; }
+    .quality-option input:checked + label { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: var(--accent-soft); }
+    .quality-option input:focus-visible + label { outline: 3px solid color-mix(in srgb, var(--focus) 55%, transparent); outline-offset: 2px; }
+    .info-band { border-top: 1px solid var(--line); padding: 36px 0 56px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 34px; }
+    .info-band h3 { margin: 0 0 7px; font: 600 1rem Georgia, serif; }
+    .info-band p { margin: 0; color: var(--muted); font-size: .84rem; line-height: 1.55; }
+    .creator-credit { border-top: 1px solid var(--line); padding: 18px 0 24px; color: var(--muted); font-size: .78rem; text-align: center; }
+    .creator-credit strong { color: var(--ink); font-weight: 700; }
+    .lib-error { display: none; background: var(--accent-soft); color: var(--ink); padding: 14px 16px; margin-bottom: 18px; border-radius: 7px; font-size: .88rem; }
+    @media (max-width: 780px) {
+      .wrap { width: min(100% - 24px, 680px); }
+      .intro { grid-template-columns: 1fr; padding-top: 34px; }
+      .trust { width: 100%; box-shadow: none; }
+      .workspace { grid-template-columns: 1fr; padding-top: 20px; gap: 14px; }
+      .tool-nav { position: static; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+      .nav-label { grid-column: 1 / -1; }
+      .tool-tab { padding: 11px 10px; grid-template-columns: 26px 1fr; }
+      .tool-tab small { display: none; }
+      .panel { min-height: 0; }
+      .panel-head, .panel-body { padding-left: 20px; padding-right: 20px; }
+      .panel-head { padding-top: 24px; }
+      .options { grid-template-columns: 1fr; }
+      .quality-grid { grid-template-columns: 1fr; }
+      .quality-option label { min-height: 0; }
+      .info-band { grid-template-columns: 1fr; gap: 22px; }
+      .action-row { align-items: stretch; }
+      .primary { width: 100%; }
+      .status { width: 100%; }
+    }
+    @media (max-width: 430px) {
+      .wrap { width: calc(100% - 18px); }
+      h1 { font-size: 2.55rem; }
+      .tool-tab { grid-template-columns: 22px 1fr; padding: 10px 8px; }
+      .tool-tab svg { width: 19px; height: 19px; }
+      .tool-tab strong { font-size: .83rem; }
+      .file-row { grid-template-columns: 29px minmax(0, 1fr) auto; gap: 9px; padding: 10px; }
+      .row-actions .icon-btn { width: 29px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .001ms !important; transition-duration: .001ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="intro">
+      <div>
+        <div class="eyebrow"><span class="dot"></span> Files stay on your device</div>
+        <h1>Do the PDF job.<br />Skip the upload.</h1>
+        <p>Merge documents, pull out pages, turn images into a PDF, or make a PDF smaller — directly in your browser.</p>
+      </div>
+      <aside class="trust">
+        <strong>No account. No file server.</strong>
+        <span>Your document is processed locally and downloaded straight back to you.</span>
+      </aside>
+    </section>
+
+    <main class="workspace">
+      <nav class="tool-nav" aria-label="PDF tools">
+        <div class="nav-label">Choose a tool</div>
+        <button class="tool-tab active" data-tool="merge" aria-controls="panel-merge" aria-selected="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h5M3 8v10M1 16l2 2 2-2"/></svg>
+          <span><strong>Merge PDFs</strong><small>Combine in order</small></span>
+        </button>
+        <button class="tool-tab" data-tool="split" aria-controls="panel-split" aria-selected="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 3h9l4 4v14H6zM15 3v5h4M3 12h12M10 9l3 3-3 3"/></svg>
+          <span><strong>Extract pages</strong><small>Choose page ranges</small></span>
+        </button>
+        <button class="tool-tab" data-tool="images" aria-controls="panel-images" aria-selected="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="2"/><path d="m4 17 5-5 4 4 3-3 4 4"/></svg>
+          <span><strong>Images to PDF</strong><small>JPG, PNG, WebP</small></span>
+        </button>
+        <button class="tool-tab" data-tool="compress" aria-controls="panel-compress" aria-selected="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M8 3v6H2M16 3v6h6M8 21v-6H2M16 21v-6h6"/><path d="m2 9 6-6M22 9l-6-6M2 15l6 6M22 15l-6 6"/></svg>
+          <span><strong>Compress PDF</strong><small>Reduce file size</small></span>
+        </button>
+      </nav>
+
+      <section>
+        <div id="lib-error" class="lib-error">The PDF engine could not load. Check your connection once, then reload this page.</div>
+
+        <article class="panel active" id="panel-merge" data-panel="merge">
+          <header class="panel-head"><div class="panel-number">01 / MERGE</div><h2>Combine PDFs in your order</h2><p>Add two or more files, arrange them, then download one clean PDF.</p></header>
+          <div class="panel-body">
+            <label class="dropzone" data-input="merge-input" tabindex="0">
+              <span><span class="drop-icon"></span><strong>Drop PDFs here or choose files</strong><span>Add as many as you need</span></span>
+              <input id="merge-input" class="file-input" type="file" accept="application/pdf,.pdf" multiple />
+            </label>
+            <div class="file-list" id="merge-list"></div>
+            <div class="action-row">
+              <button class="primary" id="merge-action" disabled>Merge &amp; download</button>
+              <button class="clear-btn" id="merge-clear" hidden>Clear</button>
+              <div class="status" id="merge-status" aria-live="polite"></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel" id="panel-split" data-panel="split">
+          <header class="panel-head"><div class="panel-number">02 / EXTRACT</div><h2>Keep only the pages you need</h2><p>Enter pages or ranges and get a new PDF containing exactly that selection.</p></header>
+          <div class="panel-body">
+            <label class="dropzone" data-input="split-input" tabindex="0">
+              <span><span class="drop-icon"></span><strong>Drop one PDF here or choose a file</strong><span>We’ll read the page count locally</span></span>
+              <input id="split-input" class="file-input" type="file" accept="application/pdf,.pdf" />
+            </label>
+            <div class="file-list" id="split-list"></div>
+            <div class="options">
+              <div class="field"><label for="page-range">Pages to keep</label><input id="page-range" placeholder="Example: 1-3, 5, 8-end" autocomplete="off" /><small>Use commas between selections. “end” means the last page.</small></div>
+              <div class="field"><label for="split-name">Output file name</label><input id="split-name" value="extracted-pages.pdf" autocomplete="off" /></div>
+            </div>
+            <div class="action-row">
+              <button class="primary" id="split-action" disabled>Extract &amp; download</button>
+              <button class="clear-btn" id="split-clear" hidden>Clear</button>
+              <div class="status" id="split-status" aria-live="polite"></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel" id="panel-images" data-panel="images">
+          <header class="panel-head"><div class="panel-number">03 / IMAGES</div><h2>Turn images into one PDF</h2><p>Arrange your pictures, choose the page setup, and create a shareable document.</p></header>
+          <div class="panel-body">
+            <label class="dropzone" data-input="images-input" tabindex="0">
+              <span><span class="drop-icon"></span><strong>Drop images here or choose files</strong><span>JPG, PNG and WebP</span></span>
+              <input id="images-input" class="file-input" type="file" accept="image/jpeg,image/png,image/webp" multiple />
+            </label>
+            <div class="file-list" id="images-list"></div>
+            <div class="options">
+              <div class="field"><label for="page-size">Page size</label><select id="page-size"><option value="fit">Fit each image</option><option value="a4">A4</option><option value="letter">US Letter</option></select></div>
+              <div class="field"><label for="image-margin">Margin</label><select id="image-margin"><option value="0">None</option><option value="24" selected>Small</option><option value="48">Wide</option></select></div>
+            </div>
+            <div class="action-row">
+              <button class="primary" id="images-action" disabled>Create &amp; download</button>
+              <button class="clear-btn" id="images-clear" hidden>Clear</button>
+              <div class="status" id="images-status" aria-live="polite"></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel" id="panel-compress" data-panel="compress">
+          <header class="panel-head"><div class="panel-number">04 / COMPRESS</div><h2>Make a PDF easier to send</h2><p>Choose a balance between clarity and file size. Best for scanned or image-heavy documents.</p></header>
+          <div class="panel-body">
+            <label class="dropzone" data-input="compress-input" tabindex="0">
+              <span><span class="drop-icon"></span><strong>Drop one PDF here or choose a file</strong><span>Large files may take a little longer</span></span>
+              <input id="compress-input" class="file-input" type="file" accept="application/pdf,.pdf" />
+            </label>
+            <div class="file-list" id="compress-list"></div>
+            <div class="quality-grid" role="radiogroup" aria-label="Compression quality">
+              <div class="quality-option"><input type="radio" name="quality" value="balanced" id="q-balanced" checked /><label for="q-balanced"><strong>Balanced</strong><span>Good clarity with a useful size reduction</span></label></div>
+              <div class="quality-option"><input type="radio" name="quality" value="small" id="q-small" /><label for="q-small"><strong>Smaller</strong><span>Lower resolution for email and forms</span></label></div>
+              <div class="quality-option"><input type="radio" name="quality" value="clear" id="q-clear" /><label for="q-clear"><strong>Clearer</strong><span>Sharper pages with a larger output</span></label></div>
+            </div>
+            <div class="notice"><strong>Heads up:</strong> compression rebuilds each page as an image. Selectable text, links, forms, and accessibility tags will not be preserved.</div>
+            <div class="action-row">
+              <button class="primary" id="compress-action" disabled>Compress &amp; download</button>
+              <button class="clear-btn" id="compress-clear" hidden>Clear</button>
+              <div class="status" id="compress-status" aria-live="polite"></div>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <section class="info-band" aria-label="How it works">
+      <div><h3>Private by design</h3><p>Your files are processed in this tab. The document itself is never uploaded to us.</p></div>
+      <div><h3>Made for everyday PDFs</h3><p>Works with most standard, unencrypted PDFs. Password-protected or damaged files may need another tool.</p></div>
+      <div><h3>Nothing to install</h3><p>Use it on phone or desktop. Keep this page open until your download finishes.</p></div>
+    </section>
+    <footer class="creator-credit">Created by <strong>Naresh</strong></footer>
+  </div>
+
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var state = { merge: [], split: [], images: [], compress: [] };
+      var $ = function (id) { return document.getElementById(id); };
+      var icons = {
+        up: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m6 15 6-6 6 6"/></svg>',
+        down: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m6 9 6 6 6-6"/></svg>',
+        remove: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 5l14 14M19 5 5 19"/></svg>'
+      };
+
+      if (!window.PDFLib || !window.pdfjsLib) {
+        $('lib-error').style.display = 'block';
+      } else {
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      }
+
+      document.querySelectorAll('.tool-tab').forEach(function (tab) {
+        tab.addEventListener('click', function () {
+          document.querySelectorAll('.tool-tab').forEach(function (item) { item.classList.remove('active'); item.setAttribute('aria-selected', 'false'); });
+          document.querySelectorAll('.panel').forEach(function (item) { item.classList.remove('active'); });
+          tab.classList.add('active');
+          tab.setAttribute('aria-selected', 'true');
+          document.querySelector('[data-panel="' + tab.dataset.tool + '"]').classList.add('active');
+        });
+      });
+
+      document.querySelectorAll('.dropzone').forEach(function (zone) {
+        var input = $(zone.dataset.input);
+        zone.addEventListener('keydown', function (event) {
+          if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); input.click(); }
+        });
+        ['dragenter', 'dragover'].forEach(function (name) {
+          zone.addEventListener(name, function (event) { event.preventDefault(); zone.classList.add('dragging'); });
+        });
+        ['dragleave', 'drop'].forEach(function (name) {
+          zone.addEventListener(name, function (event) { event.preventDefault(); zone.classList.remove('dragging'); });
+        });
+        zone.addEventListener('drop', function (event) {
+          handleFiles(input.id, Array.prototype.slice.call(event.dataTransfer.files));
+        });
+        input.addEventListener('change', function () {
+          handleFiles(input.id, Array.prototype.slice.call(input.files));
+          input.value = '';
+        });
+      });
+
+      function prettySize(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / 1048576).toFixed(1) + ' MB';
+      }
+      function safePdfName(name, fallback) {
+        var clean = String(name || fallback).trim().replace(/[\\/:*?"<>|]/g, '-');
+        if (!clean) clean = fallback;
+        return /\.pdf$/i.test(clean) ? clean : clean + '.pdf';
+      }
+      function setStatus(tool, message, type, busy) {
+        var el = $(tool + '-status');
+        el.className = 'status' + (type ? ' ' + type : '');
+        el.innerHTML = (busy ? '<span class="spinner" aria-hidden="true"></span>' : '') + '<span>' + message + '</span>';
+      }
+      function downloadBytes(bytes, name) {
+        var blob = new Blob([bytes], { type: 'application/pdf' });
+        var url = URL.createObjectURL(blob);
+        var link = document.createElement('a');
+        link.href = url; link.download = name;
+        document.body.appendChild(link); link.click(); link.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 1200);
+        return blob.size;
+      }
+      function accepted(file, kind) {
+        if (kind === 'images') return /^image\/(jpeg|png|webp)$/i.test(file.type) || /\.(jpe?g|png|webp)$/i.test(file.name);
+        return file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
+      }
+      function handleFiles(inputId, files) {
+        var tool = inputId.split('-')[0];
+        var valid = files.filter(function (file) { return accepted(file, tool); });
+        if (!valid.length) { setStatus(tool, tool === 'images' ? 'Choose JPG, PNG, or WebP images.' : 'Choose a PDF file.', 'error'); return; }
+        if (tool === 'split' || tool === 'compress') state[tool] = [valid[0]];
+        else state[tool] = state[tool].concat(valid);
+        renderList(tool);
+        if (tool === 'split') readPageCount(valid[0]);
+        else setStatus(tool, state[tool].length + (state[tool].length === 1 ? ' file ready' : ' files ready'), '', false);
+      }
+      function renderList(tool) {
+        var list = $(tool + '-list');
+        list.innerHTML = '';
+        state[tool].forEach(function (file, index) {
+          var row = document.createElement('div'); row.className = 'file-row';
+          var badge = document.createElement('div'); badge.className = 'file-badge'; badge.textContent = tool === 'images' ? 'IMG' : 'PDF';
+          var meta = document.createElement('div'); meta.className = 'file-meta';
+          var fileName = document.createElement('div'); fileName.className = 'file-name'; fileName.textContent = file.name;
+          var size = document.createElement('div'); size.className = 'file-size'; size.textContent = prettySize(file.size);
+          meta.appendChild(fileName); meta.appendChild(size);
+          var actions = document.createElement('div'); actions.className = 'row-actions';
+          if ((tool === 'merge' || tool === 'images') && state[tool].length > 1) {
+            actions.appendChild(makeIconButton('Move up', icons.up, function () { moveFile(tool, index, -1); }, index === 0));
+            actions.appendChild(makeIconButton('Move down', icons.down, function () { moveFile(tool, index, 1); }, index === state[tool].length - 1));
+          }
+          actions.appendChild(makeIconButton('Remove', icons.remove, function () { state[tool].splice(index, 1); renderList(tool); setStatus(tool, state[tool].length ? state[tool].length + ' file' + (state[tool].length === 1 ? '' : 's') + ' ready' : '', '', false); }, false));
+          row.appendChild(badge); row.appendChild(meta); row.appendChild(actions); list.appendChild(row);
+        });
+        var has = state[tool].length > 0;
+        $(tool + '-clear').hidden = !has;
+        $(tool + '-action').disabled = tool === 'merge' ? state.merge.length < 2 : !has;
+      }
+      function makeIconButton(label, svg, action, disabled) {
+        var button = document.createElement('button'); button.className = 'icon-btn'; button.type = 'button'; button.setAttribute('aria-label', label); button.title = label; button.innerHTML = svg; button.disabled = disabled; button.addEventListener('click', action); return button;
+      }
+      function moveFile(tool, index, direction) {
+        var target = index + direction;
+        if (target < 0 || target >= state[tool].length) return;
+        var item = state[tool].splice(index, 1)[0]; state[tool].splice(target, 0, item); renderList(tool);
+      }
+      ['merge', 'split', 'images', 'compress'].forEach(function (tool) {
+        $(tool + '-clear').addEventListener('click', function () { state[tool] = []; renderList(tool); setStatus(tool, '', '', false); if (tool === 'split') $('page-range').value = ''; });
+      });
+
+      async function readPageCount(file) {
+        if (!window.PDFLib) return;
+        try {
+          setStatus('split', 'Reading pages…', '', true);
+          var bytes = await file.arrayBuffer();
+          var doc = await window.PDFLib.PDFDocument.load(bytes, { ignoreEncryption: false });
+          file._pageCount = doc.getPageCount();
+          $('page-range').placeholder = 'Example: 1-' + file._pageCount;
+          setStatus('split', file._pageCount + ' pages found', 'success', false);
+        } catch (error) { setStatus('split', friendlyError(error), 'error', false); }
+      }
+      function friendlyError(error) {
+        var text = String(error && error.message || error || 'Unknown error');
+        if (/encrypt|password/i.test(text)) return 'This PDF is password-protected. Unlock it first and try again.';
+        if (/invalid|parse|header|xref/i.test(text)) return 'This file does not appear to be a valid PDF.';
+        return 'Could not process this file. Try another PDF.';
+      }
+      function parseRanges(text, total) {
+        var cleaned = text.trim().toLowerCase();
+        if (!cleaned) throw new Error('Enter at least one page or range.');
+        var result = [];
+        cleaned.split(',').forEach(function (part) {
+          part = part.trim();
+          if (!part) return;
+          var match = part.match(/^(\d+|end)(?:\s*-\s*(\d+|end))?$/);
+          if (!match) throw new Error('Use a format like 1-3, 5, 8-end.');
+          var start = match[1] === 'end' ? total : Number(match[1]);
+          var finish = match[2] ? (match[2] === 'end' ? total : Number(match[2])) : start;
+          if (start < 1 || finish < 1 || start > total || finish > total) throw new Error('Choose pages between 1 and ' + total + '.');
+          if (start > finish) throw new Error('A range must start before it ends.');
+          for (var i = start; i <= finish; i++) if (result.indexOf(i - 1) === -1) result.push(i - 1);
+        });
+        if (!result.length) throw new Error('Enter at least one page or range.');
+        return result;
+      }
+
+      $('merge-action').addEventListener('click', async function () {
+        if (!window.PDFLib || state.merge.length < 2) return;
+        var button = this; button.disabled = true;
+        try {
+          setStatus('merge', 'Combining ' + state.merge.length + ' files…', '', true);
+          var out = await window.PDFLib.PDFDocument.create();
+          for (var i = 0; i < state.merge.length; i++) {
+            setStatus('merge', 'Adding file ' + (i + 1) + ' of ' + state.merge.length + '…', '', true);
+            var source = await window.PDFLib.PDFDocument.load(await state.merge[i].arrayBuffer(), { ignoreEncryption: false });
+            var indices = source.getPageIndices();
+            var copied = await out.copyPages(source, indices);
+            copied.forEach(function (page) { out.addPage(page); });
+          }
+          var bytes = await out.save({ useObjectStreams: true });
+          var size = downloadBytes(bytes, 'merged.pdf');
+          setStatus('merge', 'Merged PDF downloaded · ' + prettySize(size), 'success', false);
+        } catch (error) { setStatus('merge', friendlyError(error), 'error', false); }
+        button.disabled = state.merge.length < 2;
+      });
+
+      $('split-action').addEventListener('click', async function () {
+        if (!window.PDFLib || !state.split[0]) return;
+        var button = this; button.disabled = true;
+        try {
+          setStatus('split', 'Extracting pages…', '', true);
+          var source = await window.PDFLib.PDFDocument.load(await state.split[0].arrayBuffer(), { ignoreEncryption: false });
+          var indices = parseRanges($('page-range').value, source.getPageCount());
+          var out = await window.PDFLib.PDFDocument.create();
+          var copied = await out.copyPages(source, indices); copied.forEach(function (page) { out.addPage(page); });
+          var bytes = await out.save({ useObjectStreams: true });
+          var size = downloadBytes(bytes, safePdfName($('split-name').value, 'extracted-pages.pdf'));
+          setStatus('split', indices.length + ' page' + (indices.length === 1 ? '' : 's') + ' downloaded · ' + prettySize(size), 'success', false);
+        } catch (error) { setStatus('split', error.message && !/encrypt|invalid|parse|header|xref/i.test(error.message) ? error.message : friendlyError(error), 'error', false); }
+        button.disabled = !state.split.length;
+      });
+
+      function fileToJpeg(file, quality) {
+        return new Promise(function (resolve, reject) {
+          var url = URL.createObjectURL(file); var image = new Image();
+          image.onload = function () {
+            try {
+              var canvas = document.createElement('canvas'); canvas.width = image.naturalWidth; canvas.height = image.naturalHeight;
+              var ctx = canvas.getContext('2d'); ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.drawImage(image, 0, 0);
+              canvas.toBlob(function (blob) { URL.revokeObjectURL(url); if (!blob) return reject(new Error('Could not read image.')); blob.arrayBuffer().then(resolve, reject); }, 'image/jpeg', quality || .9);
+            } catch (error) { URL.revokeObjectURL(url); reject(error); }
+          };
+          image.onerror = function () { URL.revokeObjectURL(url); reject(new Error('Could not read image.')); };
+          image.src = url;
+        });
+      }
+
+      $('images-action').addEventListener('click', async function () {
+        if (!window.PDFLib || !state.images.length) return;
+        var button = this; button.disabled = true;
+        try {
+          var out = await window.PDFLib.PDFDocument.create();
+          var setting = $('page-size').value; var margin = Number($('image-margin').value);
+          for (var i = 0; i < state.images.length; i++) {
+            setStatus('images', 'Building page ' + (i + 1) + ' of ' + state.images.length + '…', '', true);
+            var jpegBytes = await fileToJpeg(state.images[i], .92);
+            var image = await out.embedJpg(jpegBytes); var dims = image.scale(1); var pageW, pageH;
+            if (setting === 'a4') { pageW = 595.28; pageH = 841.89; }
+            else if (setting === 'letter') { pageW = 612; pageH = 792; }
+            else { pageW = Math.max(72, dims.width + margin * 2); pageH = Math.max(72, dims.height + margin * 2); }
+            if (setting !== 'fit' && ((dims.width > dims.height) !== (pageW > pageH))) { var swap = pageW; pageW = pageH; pageH = swap; }
+            var page = out.addPage([pageW, pageH]); var maxW = pageW - margin * 2; var maxH = pageH - margin * 2;
+            var scale = Math.min(maxW / dims.width, maxH / dims.height); var drawW = dims.width * scale; var drawH = dims.height * scale;
+            page.drawImage(image, { x: (pageW - drawW) / 2, y: (pageH - drawH) / 2, width: drawW, height: drawH });
+          }
+          var bytes = await out.save({ useObjectStreams: true }); var size = downloadBytes(bytes, 'images.pdf');
+          setStatus('images', state.images.length + ' page PDF downloaded · ' + prettySize(size), 'success', false);
+        } catch (error) { setStatus('images', 'One of these images could not be processed.', 'error', false); }
+        button.disabled = !state.images.length;
+      });
+
+      $('compress-action').addEventListener('click', async function () {
+        if (!window.PDFLib || !window.pdfjsLib || !state.compress[0]) return;
+        var button = this; button.disabled = true;
+        try {
+          var originalSize = state.compress[0].size;
+          var data = new Uint8Array(await state.compress[0].arrayBuffer());
+          var loading = window.pdfjsLib.getDocument({ data: data });
+          var pdf = await loading.promise; var out = await window.PDFLib.PDFDocument.create();
+          var mode = document.querySelector('input[name="quality"]:checked').value;
+          var preset = mode === 'small' ? { scale: .85, quality: .48 } : mode === 'clear' ? { scale: 1.45, quality: .82 } : { scale: 1.1, quality: .65 };
+          for (var pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
+            setStatus('compress', 'Compressing page ' + pageNumber + ' of ' + pdf.numPages + '…', '', true);
+            var pdfPage = await pdf.getPage(pageNumber); var base = pdfPage.getViewport({ scale: 1 }); var view = pdfPage.getViewport({ scale: preset.scale });
+            var canvas = document.createElement('canvas'); canvas.width = Math.ceil(view.width); canvas.height = Math.ceil(view.height);
+            var ctx = canvas.getContext('2d', { alpha: false }); ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            await pdfPage.render({ canvasContext: ctx, viewport: view }).promise;
+            var blob = await new Promise(function (resolve) { canvas.toBlob(resolve, 'image/jpeg', preset.quality); });
+            if (!blob) throw new Error('Page rendering failed.');
+            var image = await out.embedJpg(await blob.arrayBuffer());
+            var page = out.addPage([base.width, base.height]); page.drawImage(image, { x: 0, y: 0, width: base.width, height: base.height });
+            canvas.width = 1; canvas.height = 1; pdfPage.cleanup();
+          }
+          var bytes = await out.save({ useObjectStreams: true }); var outputSize = downloadBytes(bytes, 'compressed-' + safePdfName(state.compress[0].name, 'document.pdf'));
+          var difference = Math.round((1 - outputSize / originalSize) * 100);
+          var message = difference > 0 ? 'Downloaded · ' + difference + '% smaller (' + prettySize(outputSize) + ')' : 'Downloaded · ' + prettySize(outputSize) + ' (this PDF could not be made smaller)';
+          setStatus('compress', message, 'success', false); await pdf.destroy();
+        } catch (error) { setStatus('compress', friendlyError(error), 'error', false); }
+        button.disabled = !state.compress.length;
+      });
+    })();
+  </script>
+</body>
+</html>
