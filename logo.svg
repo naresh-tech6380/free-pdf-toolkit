@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">Naresh PDF monogram</title>
+  <desc id="desc">A stylized letter N formed from folded document pages</desc>
+  <defs>
+    <linearGradient id="g" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4f46e5"/>
+      <stop offset="1" stop-color="#8b5cf6"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#g)" d="M10 8h15l24 32V8h5v48H39L15 24v32h-5V8Z"/>
+  <path fill="#fff" fill-opacity=".9" d="M15 14h7l27 36h-7L15 14Z"/>
+  <path fill="#c4b5fd" d="M49 8h5v12l-5-5V8Z"/>
+  <path fill="none" stroke="#fff" stroke-linecap="round" stroke-width="2.5" d="M19 45v6m-3-3 3 3 3-3"/>
+</svg>
